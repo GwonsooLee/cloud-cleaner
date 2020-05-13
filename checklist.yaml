@@ -1,0 +1,15 @@
+# Checklist for cleaning
+
+#Basic Configurations
+ignore_tag: ingore_clean
+slack:
+  webhook_url:
+  token:
+
+regions:
+  - ap-northeast-2
+
+resources:
+  - name: ebs
+  - name: ec2
+
