@@ -15,23 +15,27 @@ type AWSClient struct {
 	EBSService aws.EBSClient
 }
 
-func (A AWSClient) printSummary(res Resource, rep reporter.Reporter)  {
+func (A AWSClient) printSummary(res Resource, rep reporter.Reporter, region string)  {
 	formatting := `
 ============================================================
 Resource Configuration Summary
 ============================================================
-name       : %s
+Region     : %s
+Name       : %s
 ============================================================`
-	summary := fmt.Sprintf(formatting, res.Name)
+	summary := fmt.Sprintf(formatting, region, res.Name)
 	fmt.Println(summary)
 }
 
-func (A AWSClient) clean(res Resource, rep reporter.Reporter)  {
+func (A AWSClient) clean(res Resource, rep reporter.Reporter, region string)  {
 	// ebs
 	if res.Name == "ebs" {
 		A.EBSService.Clean(rep)
 	}
 
+	if res.Name == "ec2" {
+		A.EC2Service.Clean(rep)
+	}
 
 }
 

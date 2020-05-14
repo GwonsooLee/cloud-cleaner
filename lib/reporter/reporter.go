@@ -1,9 +1,16 @@
 package reporter
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"github.com/slack-go/slack"
+)
+
+var (
+	START_TITLE="Hey there 👋 I'm *Clean Bot*..\nI'm here to help you check and clean wasted resources in Slack."
+	REGION_TITLE=":mega::mega::bell::bell: *Region : %s* :mega::mega::bell::bell: "
+	GREAT_MESSAGE=":thumbsup::100: *No wasted resources* "
 )
 
 type Reporter struct {
@@ -28,9 +35,28 @@ func (r Reporter) SendSimpleMessage(message string) {
 	r.SendMessage(msgOpt)
 }
 
+func (r Reporter) SendGreatMessage() {
+	textSection := r.CreateSimpleSection(GREAT_MESSAGE)
+	msgOpt := slack.MsgOptionBlocks(textSection)
+	r.SendMessage(msgOpt)
+}
 
-func (r Reporter) CreateVolumeAlarmMessage(title string, sl []string) slack.MsgOption {
+
+func (r Reporter) SendTitleMessage() {
+	textSection := r.CreateSimpleSection(START_TITLE)
+	msgOpt := slack.MsgOptionBlocks(textSection)
+	r.SendMessage(msgOpt)
+}
+
+func (r Reporter) SendRegionMessage(region string) {
+	textSection := r.CreateSimpleSection(fmt.Sprintf(REGION_TITLE, region))
+	msgOpt := slack.MsgOptionBlocks(textSection)
+	r.SendMessage(msgOpt)
+}
+
+func (r Reporter) CreateAlarmMessage(title string, sl []string) slack.MsgOption {
 	return slack.MsgOptionBlocks(
+		r.CreateDividerSection(),
 		r.CreateTitleSection(title),
 		r.CreateDividerSection(),
 		r.CreateSimpleSection(strings.Join(sl[:], "\n")),
@@ -64,7 +90,7 @@ func (r Reporter) CreateSimpleSection(text string) *slack.SectionBlock {
 }
 
 func (r Reporter) CreateTitleSection(text string) *slack.SectionBlock {
-	txt := slack.NewTextBlockObject("mrkdwn", "*"+text+"*", false, false)
+	txt := slack.NewTextBlockObject("mrkdwn", text, false, false)
 	section := slack.NewSectionBlock(txt, nil,nil)
 	return section
 }

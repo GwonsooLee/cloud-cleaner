@@ -114,8 +114,8 @@ func _print_wasted_volumes(count int, volumes []Wasted, rep reporter.Reporter)  
 		textList = append(textList, fmt.Sprintf("Volume ID=`%s` Created At=%s", v.Id, v.Ctime))
 	}
 
-	title := "Please check these `unattached volumes`!!"
-	msgOption := rep.CreateVolumeAlarmMessage(title, textList)
+	title := LESS_CRITICAL+"*Please check these `unattached volumes`!!*"
+	msgOption := rep.CreateAlarmMessage(title, textList)
 	rep.SendBlockMessage(msgOption)
 }
 
@@ -124,7 +124,10 @@ func _print_test_volumes(count int, volumes []TestV, rep reporter.Reporter)  {
 		"count": count,
 	}).Info("Cleaner found volumes with test")
 
-	if count <= 0 { return }
+	if count <= 0 {
+		rep.SendGreatMessage()
+		return
+	}
 
 	textList := []string{}
 	for i, v := range volumes {
@@ -137,7 +140,7 @@ func _print_test_volumes(count int, volumes []TestV, rep reporter.Reporter)  {
 		textList = append(textList, fmt.Sprintf("Volume ID=`%s` Key=%s Value=%s", v.Id, v.Value))
 	}
 
-	title := "Please check these `test tagged volumes`!!"
-	msgOption := rep.CreateVolumeAlarmMessage(title, textList)
+	title := LESS_CRITICAL+"*Please check these `test tagged volumes`!!*"
+	msgOption := rep.CreateAlarmMessage(title, textList)
 	rep.SendBlockMessage(msgOption)
 }

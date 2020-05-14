@@ -7,8 +7,8 @@ import (
 )
 
 type Client interface {
-	printSummary(res Resource, rep reporter.Reporter)
-	clean(res Resource, rep reporter.Reporter)
+	printSummary(res Resource, rep reporter.Reporter, region string)
+	clean(res Resource, rep reporter.Reporter, region string)
 }
 
 func NewAWSClient(region, assume_role string) AWSClient {
@@ -17,13 +17,11 @@ func NewAWSClient(region, assume_role string) AWSClient {
 }
 
 // Start Resource cleaning
-func Start(c Client, resource Resource, slackConfig SlackConfig) {
-	// Make new reporter
-	reporter := reporter.New(slackConfig.Token, slackConfig.ChannelId)
+func Start(c Client, region string, resource Resource, reporter reporter.Reporter) {
 
 	// Print summary of resource to clean
-	c.printSummary(resource, reporter)
+	c.printSummary(resource, reporter, region)
 
 	//start clean
-	c.clean(resource, reporter)
+	c.clean(resource, reporter, region)
 }

@@ -8,6 +8,9 @@ slack:
 
 regions:
   - ap-northeast-2
+  - ap-southeast-1
+  - us-east-1
+  - us-west-2
 
 resources:
   - name: ebs

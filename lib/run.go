@@ -2,6 +2,7 @@ package lib
 
 import (
 	"./util"
+	"./reporter"
 )
 
 
@@ -31,10 +32,14 @@ func (r Runner) Clean()  {
 	resources := r.CheckList.Resources
 	regions := r.CheckList.Regions
 
+	reporter := reporter.New(r.CheckList.SlackConfig.Token, r.CheckList.SlackConfig.ChannelId)
+	reporter.SendTitleMessage()
+
 	for _, region := range regions {
 		awsClient := util.NewAWSClient(region, r.Config.AssumeRole)
+		reporter.SendRegionMessage(region)
 		for _, resource := range resources {
-			util.Start(awsClient, resource, r.CheckList.SlackConfig)
+			util.Start(awsClient, region, resource, reporter)
 		}
 	}
 
