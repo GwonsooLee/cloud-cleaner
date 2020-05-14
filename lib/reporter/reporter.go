@@ -1,47 +1,83 @@
 package reporter
 
 import (
-	"bytes"
-	"encoding/json"
-	"net/http"
 	"os"
-	"time"
+	"strings"
+	"github.com/slack-go/slack"
 )
 
 type Reporter struct {
-	WebhookUrl string
 	Token string
+	ChannelId string
 }
 
 type SlackBody struct {
 	Text string `json:"text"`
 }
 
-func New(url string, token string) Reporter {
+func New(token string, channel_id string) Reporter {
 	return Reporter{
-		WebhookUrl: url,
 		Token:     token,
+		ChannelId:  channel_id,
 	}
 }
 
-func (r Reporter) Send_slack_message(message string) {
-	slackBody, _ := json.Marshal(SlackBody{Text: message})
-	req, err := http.NewRequest(http.MethodPost, r.WebhookUrl, bytes.NewBuffer(slackBody))
+func (r Reporter) SendSimpleMessage(message string) {
+	textSection := r.CreateSimpleSection(message)
+	msgOpt := slack.MsgOptionBlocks(textSection)
+	r.SendMessage(msgOpt)
+}
+
+
+func (r Reporter) CreateVolumeAlarmMessage(title string, sl []string) slack.MsgOption {
+	return slack.MsgOptionBlocks(
+		r.CreateTitleSection(title),
+		r.CreateDividerSection(),
+		r.CreateSimpleSection(strings.Join(sl[:], "\n")),
+	)
+}
+
+func (r Reporter) SendBlockMessage(msgOpt slack.MsgOption) (string, string, string) {
+	client := r.GetSlackClient()
+	channel, timestamp, response, err:= client.SendMessage(r.ChannelId, msgOpt)
 	if err != nil {
 		os.Exit(1)
 	}
 
-	req.Header.Add("Content-Type", "application/json")
+	return channel, timestamp, response
+}
 
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
+func (r Reporter) SendMessage(msgOpt slack.MsgOption) (string, string, string) {
+	client := r.GetSlackClient()
+	channel, timestamp, response, err:= client.SendMessage(r.ChannelId, msgOpt)
 	if err != nil {
 		os.Exit(1)
 	}
 
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(resp.Body)
-	if buf.String() != "ok" {
-		os.Exit(1)
+	return channel, timestamp, response
+}
+
+func (r Reporter) CreateSimpleSection(text string) *slack.SectionBlock {
+	txt := slack.NewTextBlockObject("mrkdwn", text, false, false)
+	section := slack.NewSectionBlock(txt, nil,nil)
+	return section
+}
+
+func (r Reporter) CreateTitleSection(text string) *slack.SectionBlock {
+	txt := slack.NewTextBlockObject("mrkdwn", "*"+text+"*", false, false)
+	section := slack.NewSectionBlock(txt, nil,nil)
+	return section
+}
+
+func (r Reporter) CreateDividerSection() *slack.DividerBlock {
+	return slack.NewDividerBlock()
+}
+
+func (r Reporter) GetSlackClient() *slack.Client {
+	token := r.Token
+	if token == "" {
+		token = os.Getenv("SLACK_OAUTH_TOKEN")
 	}
+	client := slack.New(token)
+	return client
 }

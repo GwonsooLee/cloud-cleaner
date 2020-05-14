@@ -21,8 +21,8 @@ type CheckList struct {
 }
 
 type SlackConfig struct {
-	WebhookURL string `yaml:"webhook_url"`
 	Token string `yaml:"token"`
+	ChannelId string `yaml:"channel_id"`
 }
 
 type Resource struct {

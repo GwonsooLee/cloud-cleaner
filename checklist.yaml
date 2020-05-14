@@ -3,7 +3,7 @@
 #Basic Configurations
 ignore_tag: ingore_clean
 slack:
-  webhook_url:
+  channel_id:
   token:
 
 regions:

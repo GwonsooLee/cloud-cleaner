@@ -32,8 +32,8 @@ type TestV struct {
 
 // Clean wasted EBS Volumes
 func (e EBSClient) Clean(rep reporter.Reporter) {
-
-	_logging_with_slack(rep, "Start cleaning `wasted EBS volumes`")
+	// Detect Wasted Volumes
+	Logger.Info("Start cleaning `wasted EBS volumes`")
 
 	// Find all volumes
 	volumes, err := e.EC2Client.DescribeVolumes(&ec2.DescribeVolumesInput{})
@@ -78,11 +78,8 @@ func (e EBSClient) Clean(rep reporter.Reporter) {
 		}
 	}
 
-	_print_wasted_volumes(avail_count, wasted)
-	_print_test_volumes(test_count, testv)
-
-
-	rep.Send_slack_message(fmt.Sprintf("[EBS volumes] Wasted: %d / Test Tagged: %d", avail_count, test_count))
+	_print_wasted_volumes(avail_count, wasted, rep)
+	_print_test_volumes(test_count, testv, rep)
 }
 
 func NewEBSClient(session *session.Session, region string, creds *credentials.Credentials) EBSClient {
@@ -99,36 +96,48 @@ func _get_ebs_client_fn(session *session.Session, region string, creds *credenti
 	return ebs.New(session, &aws.Config{Region: aws.String(region), Credentials: creds})
 }
 
-func _print_wasted_volumes(count int, volumes []Wasted)  {
+func _print_wasted_volumes(count int, volumes []Wasted, rep reporter.Reporter)  {
 	Logger.WithFields(Logger.Fields{
 		"count": count,
 	}).Info("Cleaner found unattached volumes")
 
+
 	if count <= 0 { return }
+
+	textList := []string{}
 	for i, v := range volumes {
 		Logger.WithFields(Logger.Fields{
 			"Volume ID": v.Id,
 			"Created At": v.Ctime,
 		}).Info("Volume ", i+1)
+
+		textList = append(textList, fmt.Sprintf("Volume ID=`%s` Created At=%s", v.Id, v.Ctime))
 	}
+
+	title := "Please check these `unattached volumes`!!"
+	msgOption := rep.CreateVolumeAlarmMessage(title, textList)
+	rep.SendBlockMessage(msgOption)
 }
 
-func _print_test_volumes(count int, volumes []TestV)  {
+func _print_test_volumes(count int, volumes []TestV, rep reporter.Reporter)  {
 	Logger.WithFields(Logger.Fields{
 		"count": count,
 	}).Info("Cleaner found volumes with test")
 
 	if count <= 0 { return }
+
+	textList := []string{}
 	for i, v := range volumes {
 		Logger.WithFields(Logger.Fields{
 			"Volume ID": v.Id,
 			"Key": v.Key,
 			"Value": v.Value,
 		}).Info("Volume ", i+1)
-	}
-}
 
-func _logging_with_slack(rep reporter.Reporter, msg string)  {
-	Logger.Info(msg)
-	rep.Send_slack_message(msg)
+		textList = append(textList, fmt.Sprintf("Volume ID=`%s` Key=%s Value=%s", v.Id, v.Value))
+	}
+
+	title := "Please check these `test tagged volumes`!!"
+	msgOption := rep.CreateVolumeAlarmMessage(title, textList)
+	rep.SendBlockMessage(msgOption)
 }
