@@ -13,6 +13,7 @@ type AWSClient struct {
 	Region string
 	EC2Service aws.EC2Client
 	EBSService aws.EBSClient
+	RDSService aws.RDSClient
 }
 
 func (A AWSClient) printSummary(res Resource, rep reporter.Reporter, region string)  {
@@ -33,8 +34,14 @@ func (A AWSClient) clean(res Resource, rep reporter.Reporter, region string)  {
 		A.EBSService.Clean(rep)
 	}
 
+	//ec2
 	if res.Name == "ec2" {
 		A.EC2Service.Clean(rep)
+	}
+
+
+	if res.Name == "rds" {
+		A.RDSService.Clean(rep)
 	}
 
 }
@@ -60,6 +67,7 @@ func bootstrapServices(region string, assume_role string) AWSClient {
 		Region: region,
 		EC2Service: aws.NewEC2Client(aws_session, region, creds),
 		EBSService: aws.NewEBSClient(aws_session, region, creds),
+		RDSService: aws.NewRDSClient(aws_session, region, creds),
 	}
 
 	return client

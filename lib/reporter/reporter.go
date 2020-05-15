@@ -2,15 +2,38 @@ package reporter
 
 import (
 	"fmt"
+	"github.com/slack-go/slack"
 	"os"
 	"strings"
-	"github.com/slack-go/slack"
 )
 
 var (
 	START_TITLE="Hey there 👋 I'm *Clean Bot*..\nI'm here to help you check and clean wasted resources in Slack."
-	REGION_TITLE=":mega::mega::bell::bell: *Region : %s* :mega::mega::bell::bell: "
 	GREAT_MESSAGE=":thumbsup::100: *No wasted resources* "
+)
+
+var (
+	RegionMap=map[string]string{
+		"us-east-1" : "N. Virginia",
+		"us-west-2" : "Oregon",
+		"ap-northeast-2" : "Seoul",
+		"ap-southeast-1" : "Singapore",
+		"us-east-2" : "Ohio",
+		"af-south-1" : "Cape Town",
+		"ap-east-1" : "Hong Kong",
+		"ap-south-1" : "Mumbai",
+		"ap-southeast-2" : "Sydney",
+		"ap-northeast-1" : "Tokyo",
+		"ca-central-1" : "Canada Central",
+		"eu-central-1" : "Frankfurt",
+		"eu-west-1" : "Ireland",
+		"eu-west-2" : "London",
+		"eu-south-1" : "Milan",
+		"eu-west-3" : "Paris",
+		"eu-north-1" : "Stockholm",
+		"me-south-1" : "Bahrain",
+		"sa-east-1" : "South America",
+	}
 )
 
 type Reporter struct {
@@ -49,8 +72,7 @@ func (r Reporter) SendTitleMessage() {
 }
 
 func (r Reporter) SendRegionMessage(region string) {
-	textSection := r.CreateSimpleSection(fmt.Sprintf(REGION_TITLE, region))
-	msgOpt := slack.MsgOptionBlocks(textSection)
+	msgOpt := r.CreateSimpleAttachments("Region", fmt.Sprintf("%s, %s", RegionMap[region], region))
 	r.SendMessage(msgOpt)
 }
 
@@ -106,4 +128,15 @@ func (r Reporter) GetSlackClient() *slack.Client {
 	}
 	client := slack.New(token)
 	return client
+}
+
+func (r Reporter) CreateSimpleAttachments(title, text string) slack.MsgOption {
+	return slack.MsgOptionAttachments(
+		slack.Attachment{
+			Color:         "#36a64f",
+			Title:         title,
+			Text:          text,
+			MarkdownIn:    []string{"text"},
+		},
+	)
 }

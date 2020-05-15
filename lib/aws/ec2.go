@@ -186,7 +186,7 @@ func _print_untagged_instances(count int, instances []Filtered, rep reporter.Rep
 			"Instance ID": instance.InstanceId,
 			"Instance Type": instance.InstanceType,
 			"Launched At": instance.LaunchTime,
-		}).Info("Stopped ", idx+1)
+		}).Info("Untagged ", idx+1)
 
 		textList = append(textList, fmt.Sprintf("Instance-ID=`%s` Type=`%s` Launched At=%s", instance.InstanceId, instance.InstanceType, instance.LaunchTime))
 	}
